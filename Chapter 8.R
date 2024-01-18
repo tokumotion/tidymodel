@@ -60,6 +60,7 @@ predict(lm_fit, ames_test %>% slice(1:5))
 # If we need the bare model or recipe we use extract_*
 lm_fit %>% extract_recipe()
 lm_fit %>% extract_fit_parsnip() %>% tidy() %>%  slice(1:5)
+<<<<<<< HEAD
 # HOW DATA ARE USED IN recipe()
 # When you use predict() in a model which uses recipe() it does not recalculate
 # the values based on the test data, for example if you normalize the data in
@@ -167,3 +168,5 @@ lm_wflow <- lm_wflow %>%
   add_recipe(simple_ames)
 lm_fit <- fit(lm_wflow, ames_train)
 predict(lm_fit, ames_test %>% slice(1:5))
+=======
+>>>>>>> 1a8015272bc1410cb6aeebfc58481d83b37d4c8c
