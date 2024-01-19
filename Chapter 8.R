@@ -154,18 +154,31 @@ predict(lm_fit, ames_test %>% slice(1:5))
 SF <- reformulate(grep("SF", names(ames), value = TRUE), 
                   response = 'Sale_Price')
 simple_ames <- 
-  recipe(Sale_Price ~ Neighborhood + 
-                              Gr_Liv_Area + Year_Built + Bldg_Type + Latitude, 
-                            data = ames_train) %>% 
+  recipe(Sale_Price ~ Neighborhood + Gr_Liv_Area + Year_Built + Bldg_Type + 
+           Latitude + ends_with("SF"), data = ames_train) %>% 
   step_log(Gr_Liv_Area, base = 10) %>% 
   step_other(Neighborhood, threshold = 0.01) %>%
   step_dummy(all_nominal_predictors()) %>% 
   step_interact(~ Gr_Liv_Area:starts_with('Bldg_Type_')) %>% 
   step_ns(Latitude, deg_free = 20) %>% 
   step_pca(matches('(SF$)|(Gr_Liv'))
+
+simple_ames <- recipe(Sale_Price ~ ., data = ames_train) %>% 
+  # Here we use input ALL dataset variables BUT we remove their predictor roles
+  # so we can keep using the model as intended without additional variables
+  remove_role(-ends_with('SF'), -c('Neighborhood', 'Gr_Liv_Area', 'Year_Built', 
+                                   'Bldg_Type', 'Latitude'), 
+              old_role = 'predictor') %>% 
+  step_log(Gr_Liv_Area, base = 10) %>% 
+  step_other(Neighborhood, threshold = 0.01) %>%
+  step_dummy(all_nominal_predictors()) %>% 
+  step_interact(~ Gr_Liv_Area:starts_with('Bldg_Type_')) %>% 
+  step_ns(Latitude, deg_free = 20) %>% 
+  # better to use tidyselect verbs that regex
+  step_pca(ends_with("SF") , contains("Gr_Liv"))
 lm_wflow <- lm_wflow %>% 
   remove_recipe() %>% 
   add_recipe(simple_ames)
 lm_fit <- fit(lm_wflow, ames_train)
+lm_fit
 predict(lm_fit, ames_test %>% slice(1:5))
-
